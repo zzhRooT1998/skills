@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  AbortBuildInputSchema,
   JenkinsToolErrorCode,
+  TriggerBuildInputSchema,
   runAbortBuild,
   runGetBuildStatus,
   runGetConsoleLog,
@@ -9,6 +11,16 @@ import {
 } from "../src/tools/jenkinsTools.js";
 
 describe("runTriggerBuild", () => {
+  it("accepts hitl fields in trigger schema", () => {
+    const parsed = TriggerBuildInputSchema.parse({
+      target_env: "prod",
+      job_path: "folder/my-job",
+      hitl_confirmed: true,
+      hitl_confirmation_note: "approved by ops, change-123"
+    });
+    expect(parsed.hitl_confirmed).toBe(true);
+  });
+
   it("uses build endpoint and parses queue id from location", async () => {
     const result = await runTriggerBuild(
       {
@@ -221,6 +233,17 @@ describe("runGetConsoleLog", () => {
 });
 
 describe("runAbortBuild", () => {
+  it("accepts hitl fields in abort schema", () => {
+    const parsed = AbortBuildInputSchema.parse({
+      target_env: "prod",
+      job_path: "my-job",
+      build_number: 4,
+      hitl_confirmed: true,
+      hitl_confirmation_note: "approved by release manager"
+    });
+    expect(parsed.hitl_confirmed).toBe(true);
+  });
+
   it("maps auth failures to UPSTREAM_AUTH_FAILED", async () => {
     await expect(
       runAbortBuild(

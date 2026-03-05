@@ -4,7 +4,9 @@ export const TriggerBuildInputSchema = z.object({
   target_env: z.string().min(1).optional(),
   job_path: z.string().min(1),
   parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
-  token: z.string().optional()
+  token: z.string().optional(),
+  hitl_confirmed: z.boolean().optional(),
+  hitl_confirmation_note: z.string().min(1).optional()
 });
 
 export const TrackQueueItemInputSchema = z.object({
@@ -28,7 +30,9 @@ export const GetConsoleLogInputSchema = z.object({
 export const AbortBuildInputSchema = z.object({
   target_env: z.string().min(1).optional(),
   job_path: z.string().min(1),
-  build_number: z.number().int().positive()
+  build_number: z.number().int().positive(),
+  hitl_confirmed: z.boolean().optional(),
+  hitl_confirmation_note: z.string().min(1).optional()
 });
 
 export type TriggerBuildInput = z.infer<typeof TriggerBuildInputSchema>;

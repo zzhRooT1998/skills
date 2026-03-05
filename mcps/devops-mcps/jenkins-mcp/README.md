@@ -112,6 +112,21 @@ npm start
 }
 ```
 
+Prod trigger example (explicit HITL confirmation required):
+
+```json
+{
+  "target_env": "prod",
+  "job_path": "folder-a/my-job",
+  "parameters": {
+    "ENV": "prod",
+    "RETRY": 1
+  },
+  "hitl_confirmed": true,
+  "hitl_confirmation_note": "approved by release manager, CR-2026-0312"
+}
+```
+
 ### TrackQueueItem
 
 ```json
@@ -152,6 +167,30 @@ npm start
 }
 ```
 
+Prod abort example (explicit HITL confirmation required):
+
+```json
+{
+  "target_env": "prod",
+  "job_path": "folder-a/my-job",
+  "build_number": 102,
+  "hitl_confirmed": true,
+  "hitl_confirmation_note": "approved by incident commander, INC-2026-0312"
+}
+```
+
+## Prod HITL Enforcement
+
+For `target_env=prod`, write operations require explicit human confirmation fields:
+
+- `hitl_confirmed=true` (required)
+- `hitl_confirmation_note` (optional, recommended for audit)
+
+Enforced operations:
+
+- `TriggerBuild`
+- `AbortBuild`
+
 ## Notes
 
 - `job_path` supports nested folders, for example: `folder-a/folder-b/my-job`.
@@ -160,6 +199,7 @@ npm start
 - `target_env` selects profile/environment. If omitted, `default_env` is used.
 - `allow_jobs` (optional) restricts allowed job paths for that environment.
 - `read_only=true` blocks write operations (`TriggerBuild`, `AbortBuild`) for that environment.
+- `read_only` check is evaluated before prod HITL validation.
 
 ## Included Skill
 

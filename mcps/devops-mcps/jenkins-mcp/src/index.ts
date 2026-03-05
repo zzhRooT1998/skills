@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import z from "zod/v4";
 import { JenkinsClient } from "./jenkinsClient.js";
 import { loadJenkinsProfilesResolverFromEnv } from "./profiles.js";
+import { assertWriteOperationAllowed } from "./writeGuards.js";
 import {
   AbortBuildInputSchema,
   GetBuildStatusInputSchema,
@@ -77,9 +78,11 @@ async function main(): Promise<void> {
     async (args) => {
       const { profile } = profileResolver.resolve(args.target_env);
       ensureJobAllowed(profile.allow_jobs, args.job_path);
-      if (profile.read_only === true) {
-        throw new Error("TriggerBuild is blocked by read_only profile.");
-      }
+      assertWriteOperationAllowed({
+        targetEnv: args.target_env,
+        readOnly: profile.read_only,
+        hitlConfirmed: args.hitl_confirmed
+      });
       return asToolResult(
         await runTriggerBuild(args, getClient(clients, profile, defaultTimeoutMs))
       );
@@ -147,9 +150,11 @@ async function main(): Promise<void> {
     async (args) => {
       const { profile } = profileResolver.resolve(args.target_env);
       ensureJobAllowed(profile.allow_jobs, args.job_path);
-      if (profile.read_only === true) {
-        throw new Error("AbortBuild is blocked by read_only profile.");
-      }
+      assertWriteOperationAllowed({
+        targetEnv: args.target_env,
+        readOnly: profile.read_only,
+        hitlConfirmed: args.hitl_confirmed
+      });
       return asToolResult(
         await runAbortBuild(args, getClient(clients, profile, defaultTimeoutMs))
       );

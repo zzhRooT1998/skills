@@ -193,4 +193,15 @@ npm run build
 ## Included Skill
 
 - `../../../skills/devops-skills/openobserve-metrics-triage/SKILL.md`
-  - A reusable incident-triage workflow based on `QueryMetrics`.
+  - A reusable incident-triage workflow for metrics and logs based on `QueryMetrics`.
+  - Defaults:
+    - `target_env=default`
+    - `step=30s`
+    - primary CPU metric `system_cpu_usage`
+  - Label fallback:
+    - service: `service_name -> service -> application`
+    - environment: `deployment_environment -> env -> environment`
+  - Log query supports `stream` + `keyword` with message-field fallback (`message -> log -> content -> _raw`).
+  - Output includes `data_status`, `confidence`, and optional `empty_reason`.
+  - If chart rendering is requested, use user-provided `chart_type`; otherwise reuse existing OpenObserve chart type when available.
+  - Chart fallback: `line` for metrics, `table` for logs.

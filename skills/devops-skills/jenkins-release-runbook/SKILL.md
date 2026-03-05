@@ -37,8 +37,13 @@ Run this gate in order:
 4. If user has deployed the same environment before and historical parameters are available:
    - present the previous parameter set
    - ask user to confirm reuse or provide overrides
-5. If user already provides a complete and unambiguous parameter set in the current request:
-   - skip human-in-the-loop confirmation
+5. If target environment is `prod`:
+   - ALWAYS require human confirmation before deployment, even when parameters are complete
+   - after confirmation, write operation request must include:
+     - `hitl_confirmed=true`
+     - optional `hitl_confirmation_note` (recommended for audit)
+6. If user already provides a complete and unambiguous parameter set in the current request:
+   - for non-`prod`, skip human-in-the-loop confirmation
    - proceed directly to trigger
 
 Parameter alignment checklist (before `TriggerBuild`):
