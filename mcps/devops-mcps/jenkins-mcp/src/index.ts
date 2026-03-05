@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import z from "zod/v4";
 import { JenkinsClient } from "./jenkinsClient.js";
+import { loadJenkinsProfilesResolverFromEnv } from "./profiles.js";
 import {
   AbortBuildInputSchema,
   GetBuildStatusInputSchema,
@@ -56,12 +57,9 @@ const AbortBuildOutputSchema = z.object({
 });
 
 async function main(): Promise<void> {
-  const client = new JenkinsClient({
-    baseUrl: getRequiredEnv("JENKINS_BASE_URL"),
-    username: getRequiredEnv("JENKINS_USERNAME"),
-    apiToken: getRequiredEnv("JENKINS_API_TOKEN"),
-    timeoutMs: getOptionalNumberEnv("JENKINS_TIMEOUT_MS", 30_000)
-  });
+  const profileResolver = loadJenkinsProfilesResolverFromEnv();
+  const clients = new Map<string, JenkinsClient>();
+  const defaultTimeoutMs = getOptionalNumberEnv("JENKINS_TIMEOUT_MS", 30_000);
 
   const server = new McpServer({
     name: "jenkins-mcp",
@@ -76,7 +74,16 @@ async function main(): Promise<void> {
       inputSchema: TriggerBuildInputSchema,
       outputSchema: TriggerBuildOutputSchema
     },
-    async (args) => asToolResult(await runTriggerBuild(args, client))
+    async (args) => {
+      const { profile } = profileResolver.resolve(args.target_env);
+      ensureJobAllowed(profile.allow_jobs, args.job_path);
+      if (profile.read_only === true) {
+        throw new Error("TriggerBuild is blocked by read_only profile.");
+      }
+      return asToolResult(
+        await runTriggerBuild(args, getClient(clients, profile, defaultTimeoutMs))
+      );
+    }
   );
 
   server.registerTool(
@@ -87,7 +94,12 @@ async function main(): Promise<void> {
       inputSchema: TrackQueueItemInputSchema,
       outputSchema: TrackQueueItemOutputSchema
     },
-    async (args) => asToolResult(await runTrackQueueItem(args, client))
+    async (args) => {
+      const { profile } = profileResolver.resolve(args.target_env);
+      return asToolResult(
+        await runTrackQueueItem(args, getClient(clients, profile, defaultTimeoutMs))
+      );
+    }
   );
 
   server.registerTool(
@@ -98,7 +110,13 @@ async function main(): Promise<void> {
       inputSchema: GetBuildStatusInputSchema,
       outputSchema: GetBuildStatusOutputSchema
     },
-    async (args) => asToolResult(await runGetBuildStatus(args, client))
+    async (args) => {
+      const { profile } = profileResolver.resolve(args.target_env);
+      ensureJobAllowed(profile.allow_jobs, args.job_path);
+      return asToolResult(
+        await runGetBuildStatus(args, getClient(clients, profile, defaultTimeoutMs))
+      );
+    }
   );
 
   server.registerTool(
@@ -109,7 +127,13 @@ async function main(): Promise<void> {
       inputSchema: GetConsoleLogInputSchema,
       outputSchema: GetConsoleLogOutputSchema
     },
-    async (args) => asToolResult(await runGetConsoleLog(args, client))
+    async (args) => {
+      const { profile } = profileResolver.resolve(args.target_env);
+      ensureJobAllowed(profile.allow_jobs, args.job_path);
+      return asToolResult(
+        await runGetConsoleLog(args, getClient(clients, profile, defaultTimeoutMs))
+      );
+    }
   );
 
   server.registerTool(
@@ -120,7 +144,16 @@ async function main(): Promise<void> {
       inputSchema: AbortBuildInputSchema,
       outputSchema: AbortBuildOutputSchema
     },
-    async (args) => asToolResult(await runAbortBuild(args, client))
+    async (args) => {
+      const { profile } = profileResolver.resolve(args.target_env);
+      ensureJobAllowed(profile.allow_jobs, args.job_path);
+      if (profile.read_only === true) {
+        throw new Error("AbortBuild is blocked by read_only profile.");
+      }
+      return asToolResult(
+        await runAbortBuild(args, getClient(clients, profile, defaultTimeoutMs))
+      );
+    }
   );
 
   const transport = new StdioServerTransport();
@@ -162,6 +195,38 @@ function getOptionalNumberEnv(name: string, fallback: number): number {
     throw new Error(`${name} must be a positive number.`);
   }
   return parsed;
+}
+
+function getClient(
+  clients: Map<string, JenkinsClient>,
+  profile: {
+    base_url: string;
+    username: string;
+    api_token: string;
+  },
+  timeoutMs: number
+): JenkinsClient {
+  const key = `${profile.base_url}|${profile.username}`;
+  let client = clients.get(key);
+  if (client === undefined) {
+    client = new JenkinsClient({
+      baseUrl: profile.base_url,
+      username: profile.username,
+      apiToken: profile.api_token,
+      timeoutMs
+    });
+    clients.set(key, client);
+  }
+  return client;
+}
+
+function ensureJobAllowed(allowJobs: string[] | undefined, jobPath: string): void {
+  if (allowJobs === undefined) {
+    return;
+  }
+  if (!allowJobs.includes(jobPath)) {
+    throw new Error(`Job '${jobPath}' is not allowed by the active Jenkins profile.`);
+  }
 }
 
 main().catch((error) => {

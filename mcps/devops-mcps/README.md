@@ -39,6 +39,14 @@ npm run build
 
 ### 2. Set OpenObserve environment variables
 
+Recommended for multi-environment:
+
+```powershell
+$env:OPENOBSERVE_PROFILES_FILE = "D:/path/openobserve.profiles.json"
+```
+
+Legacy single-environment:
+
 PowerShell (current session):
 
 ```powershell
@@ -89,6 +97,14 @@ npm run build
 
 ### 2. Set Jenkins environment variables
 
+Recommended for multi-environment:
+
+```powershell
+$env:JENKINS_PROFILES_FILE = "D:/path/jenkins.profiles.json"
+```
+
+Legacy single-environment:
+
 PowerShell (current session):
 
 ```powershell
@@ -104,6 +120,20 @@ setx JENKINS_BASE_URL "https://jenkins.example.com"
 setx JENKINS_USERNAME "your-username"
 setx JENKINS_API_TOKEN "your-api-token"
 ```
+
+How to get `JENKINS_API_TOKEN`:
+
+1. Log in to Jenkins in browser.
+2. Click your user profile (top-right).
+3. Open `Configure` (or `Security` in some versions).
+4. Find `API Token`.
+5. Click `Add new Token` / `Generate`.
+6. Copy the token value and use it as `JENKINS_API_TOKEN`.
+
+Notes:
+
+- `JENKINS_API_TOKEN` is different from your Jenkins login password.
+- Some Jenkins setups hide token controls unless your account has required permissions.
 
 ### 3. Add server config to `config.toml`
 

@@ -44,7 +44,37 @@ npm install
 
 ## Configuration
 
-Set environment variables:
+Multi-environment mode (recommended):
+
+1. Create a profiles file (for example `openobserve.profiles.json`):
+
+```json
+{
+  "default_env": "staging",
+  "environments": {
+    "staging": {
+      "base_url": "https://oo-staging.example.com",
+      "username": "svc_stg",
+      "password": "xxx",
+      "allow_streams": ["logs_app", "metrics_app"],
+      "read_only": true
+    },
+    "prod": {
+      "base_url": "https://oo-prod.example.com",
+      "username": "svc_prod",
+      "password": "yyy"
+    }
+  }
+}
+```
+
+2. Set:
+
+```bash
+OPENOBSERVE_PROFILES_FILE=/path/to/openobserve.profiles.json
+```
+
+Single-environment fallback (legacy):
 
 ```bash
 OPENOBSERVE_BASE_URL=https://your-openobserve.example.com
@@ -73,6 +103,7 @@ npm start
 
 ```json
 {
+  "target_env": "staging",
   "org": "prod",
   "query_type": "sql",
   "query": "SELECT histogram(_timestamp) as ts, avg(value) as value FROM prometheus GROUP BY ts ORDER BY ts",
@@ -122,6 +153,7 @@ npm start
 
 ```json
 {
+  "target_env": "prod",
   "org": "prod",
   "query_type": "promql",
   "query": "sum(rate(http_requests_total{service=\"api\",status=~\"5..\"}[5m])) by (service)",
@@ -156,6 +188,7 @@ npm run build
 - SQL mode expects query rows to contain timestamp in one of: `ts`, `_timestamp`, `timestamp`.
 - PromQL mode expects matrix response and converts timestamps to microseconds.
 - `raw_response=true` returns upstream payload in `raw`.
+- `target_env` selects which profile/environment to use. If omitted, `default_env` is used.
 
 ## Included Skill
 

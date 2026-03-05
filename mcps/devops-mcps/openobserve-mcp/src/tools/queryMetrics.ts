@@ -1,6 +1,7 @@
 import z from "zod/v4";
 
 export const QueryMetricsInputSchema = z.object({
+  target_env: z.string().min(1).optional(),
   org: z.string().min(1),
   query_type: z.enum(["sql", "promql"]),
   query: z.string().min(1),

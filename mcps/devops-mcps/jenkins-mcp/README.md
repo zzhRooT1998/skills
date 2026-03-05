@@ -23,13 +23,58 @@ npm install
 
 ## Configuration
 
-Required environment variables:
+Multi-environment mode (recommended):
+
+1. Create `jenkins.profiles.json`:
+
+```json
+{
+  "default_env": "staging",
+  "environments": {
+    "staging": {
+      "base_url": "https://jenkins-staging.example.com",
+      "username": "svc_jenkins_stg",
+      "api_token": "xxx",
+      "read_only": false
+    },
+    "prod": {
+      "base_url": "https://jenkins-prod.example.com",
+      "username": "svc_jenkins_prod",
+      "api_token": "yyy",
+      "allow_jobs": ["folder-a/release", "folder-b/deploy"],
+      "read_only": false
+    }
+  }
+}
+```
+
+2. Set:
+
+```bash
+JENKINS_PROFILES_FILE=/path/to/jenkins.profiles.json
+```
+
+Single-environment fallback (legacy):
 
 ```bash
 JENKINS_BASE_URL=https://jenkins.example.com
 JENKINS_USERNAME=your-username
 JENKINS_API_TOKEN=your-api-token
 ```
+
+How to get `JENKINS_API_TOKEN`:
+
+1. Log in to Jenkins in browser.
+2. Open your user profile.
+3. Go to `Configure` / `Security`.
+4. Find `API Token`.
+5. Click `Add new Token` / `Generate`.
+6. Copy token value and use it for `JENKINS_API_TOKEN`.
+
+Notes:
+
+- API token is not the same as your Jenkins login password.
+- If token controls are missing, ask Jenkins admin for token permission.
 
 Optional:
 
@@ -58,6 +103,7 @@ npm start
 
 ```json
 {
+  "target_env": "staging",
   "job_path": "folder-a/my-job",
   "parameters": {
     "ENV": "prod",
@@ -70,6 +116,7 @@ npm start
 
 ```json
 {
+  "target_env": "staging",
   "queue_id": 245
 }
 ```
@@ -78,6 +125,7 @@ npm start
 
 ```json
 {
+  "target_env": "staging",
   "job_path": "folder-a/my-job",
   "build_number": 102
 }
@@ -87,6 +135,7 @@ npm start
 
 ```json
 {
+  "target_env": "staging",
   "job_path": "folder-a/my-job",
   "build_number": 102,
   "start": 0
@@ -97,6 +146,7 @@ npm start
 
 ```json
 {
+  "target_env": "staging",
   "job_path": "folder-a/my-job",
   "build_number": 102
 }
@@ -107,6 +157,9 @@ npm start
 - `job_path` supports nested folders, for example: `folder-a/folder-b/my-job`.
 - Build trigger returns `queue_id` when Jenkins responds with queue location.
 - Console log uses Jenkins progressive endpoint and returns `next_start`.
+- `target_env` selects profile/environment. If omitted, `default_env` is used.
+- `allow_jobs` (optional) restricts allowed job paths for that environment.
+- `read_only=true` blocks write operations (`TriggerBuild`, `AbortBuild`) for that environment.
 
 ## Included Skill
 

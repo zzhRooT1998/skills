@@ -1,27 +1,32 @@
 import z from "zod/v4";
 
 export const TriggerBuildInputSchema = z.object({
+  target_env: z.string().min(1).optional(),
   job_path: z.string().min(1),
   parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   token: z.string().optional()
 });
 
 export const TrackQueueItemInputSchema = z.object({
+  target_env: z.string().min(1).optional(),
   queue_id: z.number().int().positive()
 });
 
 export const GetBuildStatusInputSchema = z.object({
+  target_env: z.string().min(1).optional(),
   job_path: z.string().min(1),
   build_number: z.number().int().positive()
 });
 
 export const GetConsoleLogInputSchema = z.object({
+  target_env: z.string().min(1).optional(),
   job_path: z.string().min(1),
   build_number: z.number().int().positive(),
   start: z.number().int().min(0).default(0)
 });
 
 export const AbortBuildInputSchema = z.object({
+  target_env: z.string().min(1).optional(),
   job_path: z.string().min(1),
   build_number: z.number().int().positive()
 });

@@ -3,8 +3,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import z from "zod/v4";
 import { OpenObserveClient } from "./openobserveClient.js";
+import { loadOpenObserveProfilesResolverFromEnv } from "./profiles.js";
 import {
   QueryMetricsError,
+  QueryMetricsErrorCode,
   QueryMetricsInputSchema,
   runQueryMetrics
 } from "./tools/queryMetrics.js";
@@ -34,11 +36,8 @@ const QueryMetricsOutputSchema = z.object({
 });
 
 async function main(): Promise<void> {
-  const client = new OpenObserveClient({
-    baseUrl: getRequiredEnv("OPENOBSERVE_BASE_URL"),
-    username: getRequiredEnv("OPENOBSERVE_USERNAME"),
-    password: getRequiredEnv("OPENOBSERVE_PASSWORD")
-  });
+  const profileResolver = loadOpenObserveProfilesResolverFromEnv();
+  const clients = new Map<string, OpenObserveClient>();
 
   const server = new McpServer({
     name: "openobserve-mcp",
@@ -56,6 +55,26 @@ async function main(): Promise<void> {
     },
     async (args) => {
       try {
+        const { env, profile } = profileResolver.resolve(args.target_env);
+        if (args.stream !== undefined && profile.allow_streams !== undefined) {
+          if (!profile.allow_streams.includes(args.stream)) {
+            throw new QueryMetricsError(
+              QueryMetricsErrorCode.INVALID_ARGUMENT,
+              `Stream '${args.stream}' is not allowed in environment '${env}'.`
+            );
+          }
+        }
+
+        let client = clients.get(env);
+        if (client === undefined) {
+          client = new OpenObserveClient({
+            baseUrl: profile.base_url,
+            username: profile.username,
+            password: profile.password
+          });
+          clients.set(env, client);
+        }
+
         const result = await runQueryMetrics(args, client);
         const structuredContent = result as unknown as Record<string, unknown>;
         return {
@@ -85,11 +104,3 @@ main().catch((error) => {
   console.error("openobserve-mcp failed to start", error);
   process.exit(1);
 });
-
-function getRequiredEnv(name: string): string {
-  const value = process.env[name];
-  if (value === undefined || value.trim() === "") {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return value;
-}
