@@ -21,14 +21,14 @@ Results are normalized into the same time-series shape so clients can consume on
 
 ```text
 openobserve-mcp/
-├─ src/
-│  ├─ index.ts                  # MCP server entrypoint
-│  ├─ openobserveClient.ts      # OpenObserve HTTP client
-│  └─ tools/queryMetrics.ts     # Tool schema + core logic
-├─ tests/
-│  └─ queryMetrics.test.ts      # TDD tests for QueryMetrics
-├─ package.json
-└─ README.md
++-- src/
+|   +-- index.ts                  # MCP server entrypoint
+|   +-- openobserveClient.ts      # OpenObserve HTTP client
+|   +-- tools/queryMetrics.ts     # Tool schema + core logic
++-- tests/
+|   +-- queryMetrics.test.ts      # TDD tests for QueryMetrics
++-- package.json
++-- README.md
 ```
 
 ## Prerequisites
@@ -192,7 +192,7 @@ npm run build
 
 ## Included Skill
 
-- `../../../skills/devops-skills/openobserve-metrics-triage/SKILL.md`
+- `../../skills/openobserve-metrics-triage/SKILL.md`
   - A reusable incident-triage workflow for metrics and logs based on `QueryMetrics`.
   - Defaults:
     - `target_env=default`

@@ -1,27 +1,25 @@
-# devops-mcps
+# mcps
 
-DevOps-oriented MCP and skill workspace.
+MCP server implementations live in this directory.
 
-## Included
+Each package here provides the tool layer used by the runbooks in [`../skills`](../skills/README.md). The directory has been flattened so MCP packages are directly visible without an extra `devops-mcps` wrapper.
+
+## Included Packages
 
 - `openobserve-mcp/`
-  - MCP server with `QueryMetrics` tool
-  - OpenObserve metrics query support (`sql` + `promql`)
-  - Incident triage skill: `../../../skills/devops-skills/openobserve-metrics-triage/SKILL.md`
+  - MCP server with the `QueryMetrics` tool
+  - supports OpenObserve `sql` and `promql` queries
+  - paired skill: `../skills/openobserve-metrics-triage/SKILL.md`
 - `jenkins-mcp/`
   - MCP tools: `TriggerBuild`, `TrackQueueItem`, `GetBuildStatus`, `GetConsoleLog`, `AbortBuild`
-  - Jenkins release runbook skill: `../../../skills/devops-skills/jenkins-release-runbook/SKILL.md`
+  - paired skill: `../skills/jenkins-release-runbook/SKILL.md`
 
 ## Skill Index
 
-Centralized skill directory:
+Operational runbooks:
 
-- `d:/github-projects/skills/skills/devops-skills/`
-
-Available skills:
-
-- `openobserve-metrics-triage/SKILL.md`
-- `jenkins-release-runbook/SKILL.md`
+- `../skills/openobserve-metrics-triage/SKILL.md`
+- `../skills/jenkins-release-runbook/SKILL.md`
 
 ## Codex Setup (`openobserve-mcp`)
 
@@ -32,7 +30,7 @@ Codex config file on Windows:
 ### 1. Build the MCP server
 
 ```bash
-cd d:/github-projects/skills/mcps/devops-mcps/openobserve-mcp
+cd d:/github-projects/skills/mcps/openobserve-mcp
 npm install
 npm run build
 ```
@@ -68,7 +66,7 @@ setx OPENOBSERVE_PASSWORD "your-password"
 ```toml
 [mcp_servers."openobserve-mcp"]
 command = "node"
-args = ["D:/github-projects/skills/mcps/devops-mcps/openobserve-mcp/dist/index.js"]
+args = ["D:/github-projects/skills/mcps/openobserve-mcp/dist/index.js"]
 ```
 
 ### 4. Restart Codex
@@ -139,7 +137,7 @@ If you want to run from TypeScript source directly:
 ```toml
 [mcp_servers."openobserve-mcp-dev"]
 command = "npx"
-args = ["tsx", "D:/github-projects/skills/mcps/devops-mcps/openobserve-mcp/src/index.ts"]
+args = ["tsx", "D:/github-projects/skills/mcps/openobserve-mcp/src/index.ts"]
 ```
 
 ## Codex Setup (`jenkins-mcp`)
@@ -147,7 +145,7 @@ args = ["tsx", "D:/github-projects/skills/mcps/devops-mcps/openobserve-mcp/src/i
 ### 1. Build the MCP server
 
 ```bash
-cd d:/github-projects/skills/mcps/devops-mcps/jenkins-mcp
+cd d:/github-projects/skills/mcps/jenkins-mcp
 npm install
 npm run build
 ```
@@ -200,7 +198,7 @@ Notes:
 ```toml
 [mcp_servers."jenkins-mcp"]
 command = "node"
-args = ["D:/github-projects/skills/mcps/devops-mcps/jenkins-mcp/dist/index.js"]
+args = ["D:/github-projects/skills/mcps/jenkins-mcp/dist/index.js"]
 ```
 
 ### 4. Restart Codex
@@ -212,7 +210,7 @@ After restart, Jenkins tools are available in chat.
 ```toml
 [mcp_servers."jenkins-mcp-dev"]
 command = "npx"
-args = ["tsx", "D:/github-projects/skills/mcps/devops-mcps/jenkins-mcp/src/index.ts"]
+args = ["tsx", "D:/github-projects/skills/mcps/jenkins-mcp/src/index.ts"]
 ```
 
 ## Combined `config.toml` Example
@@ -220,9 +218,9 @@ args = ["tsx", "D:/github-projects/skills/mcps/devops-mcps/jenkins-mcp/src/index
 ```toml
 [mcp_servers."openobserve-mcp"]
 command = "node"
-args = ["D:/github-projects/skills/mcps/devops-mcps/openobserve-mcp/dist/index.js"]
+args = ["D:/github-projects/skills/mcps/openobserve-mcp/dist/index.js"]
 
 [mcp_servers."jenkins-mcp"]
 command = "node"
-args = ["D:/github-projects/skills/mcps/devops-mcps/jenkins-mcp/dist/index.js"]
+args = ["D:/github-projects/skills/mcps/jenkins-mcp/dist/index.js"]
 ```

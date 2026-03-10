@@ -1,0 +1,3 @@
+mcps/*/node_modules/
+mcps/*/dist/
+*.log

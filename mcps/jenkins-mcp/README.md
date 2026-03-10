@@ -203,7 +203,7 @@ Enforced operations:
 
 ## Included Skill
 
-- `../../../skills/devops-skills/jenkins-release-runbook/SKILL.md`
+- `../../skills/jenkins-release-runbook/SKILL.md`
   - A reusable release runbook workflow based on Jenkins MCP tools.
 
 ## Verification
